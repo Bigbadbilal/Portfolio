@@ -116,13 +116,13 @@ const SpotifyNowPlaying = () => {
     >
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
-      <a
-        href={data.songUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex flex-col p-4 relative"
-      >
-        <div className="flex items-center space-x-4">
+      <div className="relative">
+        <a
+          href={data.songUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-4 p-4 relative"
+        >
           {data.isPlaying ? (
             <>
               <div className="relative w-12 h-12 group-hover:scale-105 transition-transform">
@@ -150,11 +150,19 @@ const SpotifyNowPlaying = () => {
               <span>Not playing</span>
             </div>
           )}
-        </div>
+        </a>
 
         {/* Progress bar - only visible when playing and on hover */}
         {data.isPlaying && (
-          <div className="mt-3 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <motion.div 
+            className="px-4 pb-3 -mt-1"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ 
+              height: "auto",
+              opacity: 1,
+              transition: { duration: 0.2 }
+            }}
+          >
             <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-blue-400"
@@ -162,13 +170,13 @@ const SpotifyNowPlaying = () => {
                 transition={{ duration: 0.1 }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-400">
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
               <span>{formatTime(localProgress)}</span>
               <span>{formatTime(data.duration)}</span>
             </div>
-          </div>
+          </motion.div>
         )}
-      </a>
+      </div>
     </motion.div>
   );
 };
