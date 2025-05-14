@@ -80,6 +80,8 @@ export async function GET() {
     const artist = song.item.artists.map((_artist: { name: string }) => _artist.name).join(', ');
     const albumImageUrl = song.item.album.images[0].url;
     const songUrl = song.item.external_urls.spotify;
+    const progress = song.progress_ms;
+    const duration = song.item.duration_ms;
 
     return NextResponse.json({
       isPlaying,
@@ -87,6 +89,8 @@ export async function GET() {
       artist,
       albumImageUrl,
       songUrl,
+      progress,
+      duration,
     });
   } catch (error) {
     console.error('Error in GET handler:', error);

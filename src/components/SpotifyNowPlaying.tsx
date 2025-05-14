@@ -11,12 +11,22 @@ interface SpotifyData {
   artist: string;
   albumImageUrl: string;
   songUrl: string;
+  progress: number;
+  duration: number;
 }
 
 const SpotifyNowPlaying = () => {
   const [data, setData] = useState<SpotifyData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pollInterval, setPollInterval] = useState(5000); // Start with 5 seconds
+  const [localProgress, setLocalProgress] = useState<number>(0);
+
+  const formatTime = (ms: number) => {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   const fetchNowPlaying = useCallback(async () => {
     try {
@@ -35,11 +45,25 @@ const SpotifyNowPlaying = () => {
       }
       
       setData(newData);
+      setLocalProgress(newData.progress);
       setError(null);
     } catch (err) {
       setError('Failed to load Spotify data');
       console.error('Error fetching Spotify data:', err);
       setPollInterval(30000); // On error, slow down polling
+    }
+  }, [data]);
+
+  // Update progress locally between polls
+  useEffect(() => {
+    if (data?.isPlaying) {
+      const interval = setInterval(() => {
+        setLocalProgress(prev => {
+          if (prev >= data.duration) return prev;
+          return prev + 1000;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
     }
   }, [data]);
 
@@ -96,33 +120,52 @@ const SpotifyNowPlaying = () => {
         href={data.songUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center space-x-4 p-4 relative"
+        className="flex flex-col p-4 relative"
       >
-        {data.isPlaying ? (
-          <>
-            <div className="relative w-12 h-12 group-hover:scale-105 transition-transform">
-              <Image
-                src={data.albumImageUrl}
-                alt={`${data.title} album art`}
-                fill
-                className="rounded-md"
+        <div className="flex items-center space-x-4">
+          {data.isPlaying ? (
+            <>
+              <div className="relative w-12 h-12 group-hover:scale-105 transition-transform">
+                <Image
+                  src={data.albumImageUrl}
+                  alt={`${data.title} album art`}
+                  fill
+                  className="rounded-md"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="font-medium text-sm text-gray-200 truncate group-hover:text-blue-400 transition-colors">
+                  {data.title}
+                </span>
+                <span className="text-xs text-gray-400 truncate">
+                  {data.artist}
+                </span>
+              </div>
+              <FaSpotify className="w-5 h-5 text-blue-400 ml-2 group-hover:text-blue-300 transition-colors" />
+            </>
+          ) : (
+            <div className="flex items-center space-x-2 text-gray-400">
+              <FaSpotify className="w-5 h-5" />
+              <span>Not playing</span>
+            </div>
+          )}
+        </div>
+
+        {/* Progress bar - only visible when playing and on hover */}
+        {data.isPlaying && (
+          <div className="mt-3 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-blue-400"
+                style={{ width: `${(localProgress / data.duration) * 100}%` }}
+                transition={{ duration: 0.1 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="font-medium text-sm text-gray-200 truncate group-hover:text-blue-400 transition-colors">
-                {data.title}
-              </span>
-              <span className="text-xs text-gray-400 truncate">
-                {data.artist}
-              </span>
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>{formatTime(localProgress)}</span>
+              <span>{formatTime(data.duration)}</span>
             </div>
-            <FaSpotify className="w-5 h-5 text-blue-400 ml-2 group-hover:text-blue-300 transition-colors" />
-          </>
-        ) : (
-          <div className="flex items-center space-x-2 text-gray-400">
-            <FaSpotify className="w-5 h-5" />
-            <span>Not playing</span>
           </div>
         )}
       </a>
