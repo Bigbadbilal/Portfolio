@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { FaSpotify } from 'react-icons/fa';
@@ -16,25 +16,38 @@ interface SpotifyData {
 const SpotifyNowPlaying = () => {
   const [data, setData] = useState<SpotifyData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pollInterval, setPollInterval] = useState(5000); // Start with 5 seconds
+
+  const fetchNowPlaying = useCallback(async () => {
+    try {
+      const response = await fetch('/api/spotify');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const newData = await response.json();
+      
+      // If the song changed or playing status changed, reset to faster polling
+      if (!data || 
+          data.title !== newData.title || 
+          data.isPlaying !== newData.isPlaying) {
+        setPollInterval(5000); // Reset to 5 seconds when song changes
+      } else {
+        // If the same song is playing, gradually increase the polling interval
+        setPollInterval(prev => Math.min(prev * 1.5, 30000)); // Cap at 30 seconds
+      }
+      
+      setData(newData);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load Spotify data');
+      console.error('Error fetching Spotify data:', err);
+      setPollInterval(30000); // On error, slow down polling
+    }
+  }, [data]);
 
   useEffect(() => {
-    const fetchNowPlaying = async () => {
-      try {
-        const response = await fetch('/api/spotify');
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        setData(data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load Spotify data');
-        console.error('Error fetching Spotify data:', err);
-      }
-    };
-
     fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 30000);
+    const interval = setInterval(fetchNowPlaying, pollInterval);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchNowPlaying, pollInterval]);
 
   if (error) {
     return (
