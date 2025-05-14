@@ -37,7 +37,7 @@ const Contact = () => {
       } else {
         setSubmitStatus('error');
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus('error');
     }
 
@@ -169,7 +169,7 @@ const Contact = () => {
               <h3 className="text-2xl font-bold">Let's Connect</h3>
               <p className="text-[var(--text-secondary)]">
                 Feel free to reach out for collaborations, opportunities, or just to say hello! 
-                I'll get back to you as soon as possible.
+                I&apos;ll get back to you as soon as possible.
               </p>
             </div>
 

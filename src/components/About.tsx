@@ -56,7 +56,7 @@ const About = () => {
               As a student at Schulich School of Business, I combine my passion for Technology 
               with business acumen to create innovative digital solutions. My focus lies in 
               understanding how emerging technologies can drive business transformation and 
-              create value in today's digital landscape.
+              create value in today&apos;s digital landscape.
             </motion.p>
 
             <motion.a
