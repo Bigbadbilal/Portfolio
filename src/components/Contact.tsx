@@ -166,7 +166,7 @@ const Contact = () => {
             transition={{ duration: 0.8 }}
           >
             <div className="space-y-6">
-              <h3 className="text-2xl font-bold">Let's Connect</h3>
+              <h3 className="text-2xl font-bold">Let&apos;s Connect</h3>
               <p className="text-[var(--text-secondary)]">
                 Feel free to reach out for collaborations, opportunities, or just to say hello! 
                 I&apos;ll get back to you as soon as possible.
