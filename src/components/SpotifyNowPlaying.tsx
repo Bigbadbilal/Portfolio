@@ -34,14 +34,12 @@ const SpotifyNowPlaying = () => {
       if (!response.ok) throw new Error('Failed to fetch');
       const newData = await response.json();
       
-      // If the song changed or playing status changed, reset to faster polling
       if (!data || 
           data.title !== newData.title || 
           data.isPlaying !== newData.isPlaying) {
-        setPollInterval(5000); // Reset to 5 seconds when song changes
+        setPollInterval(5000);
       } else {
-        // If the same song is playing, gradually increase the polling interval
-        setPollInterval(prev => Math.min(prev * 1.5, 30000)); // Cap at 30 seconds
+        setPollInterval(prev => Math.min(prev * 1.5, 30000));
       }
       
       setData(newData);
@@ -50,11 +48,10 @@ const SpotifyNowPlaying = () => {
     } catch (err) {
       setError('Failed to load Spotify data');
       console.error('Error fetching Spotify data:', err);
-      setPollInterval(30000); // On error, slow down polling
+      setPollInterval(30000);
     }
   }, [data]);
 
-  // Update progress locally between polls
   useEffect(() => {
     if (data?.isPlaying) {
       const interval = setInterval(() => {
@@ -110,9 +107,9 @@ const SpotifyNowPlaying = () => {
       className="fixed bottom-4 right-4 bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border border-gray-700 group"
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.5 }}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
@@ -154,27 +151,20 @@ const SpotifyNowPlaying = () => {
 
         {/* Progress bar - only visible when playing and on hover */}
         {data.isPlaying && (
-          <motion.div 
-            className="px-4 pb-3 -mt-1"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ 
-              height: "auto",
-              opacity: 1,
-              transition: { duration: 0.2 }
-            }}
-          >
-            <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-blue-400"
-                style={{ width: `${(localProgress / data.duration) * 100}%` }}
-                transition={{ duration: 0.1 }}
-              />
+          <div className="max-h-0 group-hover:max-h-20 overflow-hidden transition-all duration-700 ease-in-out">
+            <div className="px-4 pb-3 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out transform translate-y-2 group-hover:translate-y-0">
+              <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-400 transition-all duration-300 ease-in-out"
+                  style={{ width: `${(localProgress / data.duration) * 100}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <span>{formatTime(localProgress)}</span>
+                <span>{formatTime(data.duration)}</span>
+              </div>
             </div>
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>{formatTime(localProgress)}</span>
-              <span>{formatTime(data.duration)}</span>
-            </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </motion.div>
