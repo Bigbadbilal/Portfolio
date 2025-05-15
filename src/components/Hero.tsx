@@ -71,7 +71,7 @@ const Hero = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                Student @ Schulich School of Business
+                Student @ The Schulich School of Business
               </motion.p>
               <motion.div
                 className="code-text text-lg"
