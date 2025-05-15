@@ -20,6 +20,7 @@ const SpotifyNowPlaying = () => {
   const [error, setError] = useState<string | null>(null);
   const [pollInterval, setPollInterval] = useState(5000); // Start with 5 seconds
   const [localProgress, setLocalProgress] = useState<number>(0);
+  const [lastFetchTime, setLastFetchTime] = useState(0);
 
   const formatTime = (ms: number) => {
     const seconds = Math.floor(ms / 1000);
@@ -30,6 +31,15 @@ const SpotifyNowPlaying = () => {
 
   const fetchNowPlaying = useCallback(async () => {
     try {
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchTime;
+      
+      // Ensure at least 1 second between requests
+      if (timeSinceLastFetch < 1000) {
+        return;
+      }
+      
+      setLastFetchTime(now);
       const response = await fetch('/api/spotify');
       if (!response.ok) throw new Error('Failed to fetch');
       const newData = await response.json();
@@ -37,9 +47,9 @@ const SpotifyNowPlaying = () => {
       if (!data || 
           data.title !== newData.title || 
           data.isPlaying !== newData.isPlaying) {
-        setPollInterval(5000);
+        setPollInterval(5000); // Reset to 5 seconds on song change
       } else {
-        setPollInterval(prev => Math.min(prev * 1.5, 30000));
+        setPollInterval(prev => Math.min(prev * 1.5, 30000)); // Gradually increase up to 30 seconds
       }
       
       setData(newData);
@@ -48,9 +58,9 @@ const SpotifyNowPlaying = () => {
     } catch (err) {
       setError('Failed to load Spotify data');
       console.error('Error fetching Spotify data:', err);
-      setPollInterval(30000);
+      setPollInterval(30000); // On error, poll less frequently
     }
-  }, [data]);
+  }, [data, lastFetchTime]);
 
   useEffect(() => {
     if (data?.isPlaying) {

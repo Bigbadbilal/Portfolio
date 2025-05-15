@@ -8,8 +8,25 @@ const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
 const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
 const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 
+// Rate limiting variables
+let lastCallTime = 0;
+const MIN_TIME_BETWEEN_CALLS = 1000; // 1 second in milliseconds
+
+const waitForRateLimit = async () => {
+  const now = Date.now();
+  const timeSinceLastCall = now - lastCallTime;
+  
+  if (timeSinceLastCall < MIN_TIME_BETWEEN_CALLS) {
+    const waitTime = MIN_TIME_BETWEEN_CALLS - timeSinceLastCall;
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+  
+  lastCallTime = Date.now();
+};
+
 const getAccessToken = async () => {
   try {
+    await waitForRateLimit();
     console.log('Getting access token...');
     const response = await fetch(TOKEN_ENDPOINT, {
       method: 'POST',
@@ -41,6 +58,7 @@ const getAccessToken = async () => {
 
 const getNowPlaying = async () => {
   try {
+    await waitForRateLimit();
     console.log('Getting now playing...');
     const { access_token } = await getAccessToken();
     
